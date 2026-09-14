@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ — Записи</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+body { background: #111; color: #fff; padding: 20px; }
+h1 { font-size: 22px; margin-bottom: 20px; color: #ffdd2d; }
+.item { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+.item p { color: #aaa; font-size: 13px; margin-bottom: 10px; }
+audio { width: 100%; }
+.empty { color: #666; text-align: center; margin-top: 50px; }
+</style>
+</head>
+<body>
+<h1>Голосовые записи</h1>
+<div id="list"></div>
+<script>
+fetch('/api/list')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var list = document.getElementById('list');
+    if (!data.length) {
+      list.innerHTML = '<div class="empty">Пока нет записей</div>';
+      return;
+    }
+    data.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = '<p>' + item.date + ' — ' + item.phone + '</p>';
+      var audio = document.createElement('audio');
+      audio.src = item.url;
+      audio.controls = true;
+      div.appendChild(audio);
+      list.appendChild(div);
+    });
+  })
+  .catch(function() {
+    document.getElementById('list').innerHTML = '<div class="empty">Нужен API для работы</div>';
+  });
+</script>
+</body>
+</html>
